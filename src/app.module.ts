@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ProductModule } from './product/product.module';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
+import { RedisModule } from './redis/redis.module';
 import * as Joi from 'joi';
 
 @Module({
@@ -20,6 +21,7 @@ import * as Joi from 'joi';
     }),
     ProductModule,
     DatabaseModule,
+    RedisModule,
   ],
   controllers: [AppController],
   providers: [AppService],
