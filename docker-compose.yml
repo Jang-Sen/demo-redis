@@ -1,11 +1,29 @@
 services:
+  demo-backend:
+    container_name: demo-backend-nestjs
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - .:/usr/src/app
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT}:8000"
+    depends_on:
+      - demo-postgres
+      - demo-redis
+    networks:
+      - demo-redis-network
+
   demo-postgres:
     image: postgres:latest
     restart: always
     env_file:
       - .env
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_EXTERNAL_PORT}:5432"
     networks:
       - demo-redis-network
 
@@ -14,7 +32,7 @@ services:
     env_file:
       - .env
     ports:
-      - "${REDIS_PORT}:6379"
+      - "${REDIS_EXTERNAL_PORT}:6379"
     networks:
       - demo-redis-network
 
