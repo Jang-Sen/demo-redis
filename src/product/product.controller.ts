@@ -1,34 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ProductService } from './product.service';
+import { ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { Product } from './entities/product.entity';
 
+@ApiTags('Product')
 @Controller('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+  @ApiOperation({ summary: '제품 생성 API' })
+  @ApiConsumes('application/x-www-form-urlencoded')
+  async createProduct(@Body() dto: CreateProductDto): Promise<Product> {
+    return await this.productService.createProduct(dto);
   }
 
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  @ApiOperation({ summary: '제품 전체 조회 API' })
+  async getAllProducts() {
+    return await this.productService.getAllProducts();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
+  @Get('/redis')
+  @ApiOperation({ summary: 'Redis 데이터 제품 전체 조회 API' })
+  async getAllProductsFromRedis() {
+    return await this.productService.getAllProductsFromRedis();
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
+  @Get('/:id')
+  @ApiOperation({ summary: '제품 조회 API' })
+  async getProduct(@Param('id') id: string) {
+    return await this.productService.getProduct(id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productService.remove(+id);
+  @Get('/redis/:id')
+  @ApiOperation({ summary: 'Redis 데이터 제품 조회 API' })
+  async getProductFromRedis(@Param('id') id: string) {
+    return await this.productService.getProductFromRedis(id);
   }
 }
