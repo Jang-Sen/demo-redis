@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { CreateProductDto } from './dto/create-product.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -137,6 +138,51 @@ export class ProductService {
 
     console.log('DB 데이터 반환');
     return product;
+  }
+
+  // 삭제 로직
+  async deleteProduct(productId: string): Promise<string> {
+    const result = await this.repository.delete(productId);
+
+    if (result.affected === 0) {
+      throw new NotFoundException('제품을 찾을 수 없습니다.');
+    }
+
+    // Redis에서 제품 정보 삭제
+    await this.redis.del(`product:${productId}`);
+
+    // Redis에서 product:ids 목록에서 해당 ID 삭제
+    await this.redis.srem('product:ids', productId);
+
+    return '제품이 삭제되었습니다.';
+  }
+
+  // 수정 로직
+  async updateProduct(
+    productId: string,
+    dto: UpdateProductDto,
+  ): Promise<string> {
+    const result = await this.repository.update(productId, dto);
+
+    if (result.affected === 0) {
+      throw new NotFoundException('제품을 찾을 수 없습니다.');
+    }
+
+    // Redis에서 해당 제품 캐시 삭제
+    await this.redis.del(`product:${productId}`);
+
+    // 수정된 제품 정보를 Redis에 다시 저장
+    const updatedProduct = await this.repository.findOneBy({ id: productId });
+    if (updatedProduct) {
+      await this.redis.set(
+        `product:${productId}`,
+        JSON.stringify(updatedProduct),
+        'EX',
+        3600,
+      );
+    }
+
+    return '제품의 정보가 수정되었습니다.';
   }
 
   // 전체 조회 로직(Redis 데이터)
