@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/usr/src/app
     env_file:
-      - .env
+      - .env.docker
     ports:
       - "${BACKEND_PORT}:8000"
     depends_on:
@@ -21,18 +21,18 @@ services:
     image: postgres:latest
     restart: always
     env_file:
-      - .env
+      - .env.docker
     ports:
-      - "${POSTGRES_EXTERNAL_PORT}:5432"
+      - "${POSTGRES_PORT}:5432"
     networks:
       - demo-redis-network
 
   demo-redis:
     image: redis:alpine
     env_file:
-      - .env
+      - .env.docker
     ports:
-      - "${REDIS_EXTERNAL_PORT}:6379"
+      - "${REDIS_PORT}:6379"
     networks:
       - demo-redis-network
 
